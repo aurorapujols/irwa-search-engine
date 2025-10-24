@@ -126,13 +126,13 @@ python -m project_progress.part_1.data_prep
 
 Take into account that it might take a few seconds to run. Then, the files ``info_index_dict.json`` and ``metadata_dict.json`` will be created in the root folder containing the constructed dictionaries with each documents data.
 
-### eda.ipynb
+### `eda.ipynb`
 
 To execute the Jupyter Notebook, just make sure that the environment `irwa_venv` is selected as the Kernel (Python Interpereter).
 
 Open the file in VSCode or download it and upload it into Google colab together with the folder `data` containing the JSON file with the corpus. Then, execute cell by cell to rerun the code and reload the output.
 
-### eda.py
+### `eda.py`
 
 To run the streamlit web interface, run the following command in the root folder:
 
