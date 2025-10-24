@@ -40,7 +40,7 @@
 ----
 ## Project Progress Execution
 
-+ (Part1)[project_progress/part_1/README.md]
++ [Part1](project_progress/part_1/README.md)
 
 
 ----
