@@ -9,7 +9,7 @@ nltk.download('stopwords')
 
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
-from project_progress.part_1.data_prep import join_build_terms, corpus_df_loading
+from project_progress.part_1.data_prep import build_terms, join_build_terms, corpus_df_loading
 from collections import defaultdict
 from array import array
 
@@ -99,7 +99,37 @@ def create_index(corpus):
     return index, info_index, metadata
 
 
+def search(query, index):
+    """
+    The output is the list of documents that contain ALL query terms.
 
+    :param query: (string) query
+    :param index: (Dict) inverted index dictinary
+    :return selected_docs: (List) of documents' ids that contain all query terms
+    """
+
+    query = build_terms(query)
+    docs = None
+    for term in query:
+        try:
+            # Get all doc ids from the term
+            all_doc_ids = [ doc_id
+                            for categories in index[term].values()
+                            for doc_id, positions in categories
+                        ]
+            
+            # Get intersection of documents with ALL the terms
+            if docs is None:    # First time, set is empty
+                docs = set(all_doc_ids)     # Initiallize with first term's doc ids
+            else:
+                docs &= set(all_doc_ids) 
+                
+        except:
+            pass
+    
+    return docs
+
+# def query_index()
 
 if __name__ == "__main__":
 
@@ -107,15 +137,18 @@ if __name__ == "__main__":
     json_path = os.getenv("DATA_FILE_PATH")
     corpus = corpus_df_loading(json_path)
 
-    # # Print random element in corpus to check it loaded correctly
-    # n = random.randint(0, len(corpus)-1)
-    # print(f"\nCorpus loaded...\nElement {n} in corpus: \n", list(corpus.values())[n])
+    # Try to load the index from file
+    try:
+        with open("inverted_index.json", "r") as f:
+            index = json.load(f)
+        print("Index loaded from 'inverted_index.json'")
+    except (FileNotFoundError, json.JSONDecodeError):
+        print("Index file not found or invalid. Computing index...")
+        index, info_index, metadata = create_index(corpus)
+        with open("inverted_index.json", "w") as f:
+            json.dump(index, f, indent=2)
+        print("Inverted index created and saved to 'inverted_index.json'")
 
-    # Compute the index and save it together with the additional information
-    index, info_index, metadata = create_index(corpus)
-
-    # Store the index in a JSON document for easy and fast access
-    with open("inverted_index.json", "w") as f:
-        json.dump(index, f, indent=2)
-
-    print("\nInverted index created and saved to 'inverted_index.json'")
+    # Perform search
+    docs = search("men slim jeans blue", index)
+    print(f"Selected docs: {docs}")
