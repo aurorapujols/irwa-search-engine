@@ -3,16 +3,10 @@ import json
 import math
 import collections
 import numpy as np
+import pandas as pd
+
 from collections import defaultdict
 
-from numpy import linalg as la
-
-import nltk
-
-nltk.download("stopwords")
-
-from nltk.stem import PorterStemmer
-from nltk.corpus import stopwords
 from project_progress.part_1.data_prep import (
     build_terms,
     join_build_terms,
@@ -23,13 +17,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# -------------------- FUNCTIONS AND PARAMETERS ----------------------------------------- #
 weights = {
         "title_description": 0.5,
         "brand": 0.05,
         "category": 0.2,
         "sub_category": 0.2,
         "seller_product_details": 0.05,
-} 
+}
+
 
 def create_index_tf_idf(corpus):
     """
@@ -138,7 +134,6 @@ def create_index_tf_idf(corpus):
 
     return index, index2title, tf, df, idf
 
-
 def rank_tf_idf(query_terms, products, index, tf, idf, weights):
     """
     Perform the ranking of the results of a search based on the tf-idf weights
@@ -164,7 +159,7 @@ def rank_tf_idf(query_terms, products, index, tf, idf, weights):
 
     # Compute tf-idf for each document and query
     for term_idx, q_term in enumerate(query_terms):
-        if q_term not in index:
+        if q_term not in index: # or q_term not in idf:    # just to control
             continue
 
         # tf*idf (normalize TF)
@@ -186,7 +181,6 @@ def rank_tf_idf(query_terms, products, index, tf, idf, weights):
     product_scores.sort(reverse=True)
 
     return product_scores
-
 
 def filter(query, index):
     """
@@ -219,9 +213,10 @@ def filter(query, index):
 
     return query_terms, list(docs)
 
-
 def engine_search(query, index, tf, idf, weights):
     query_terms, filtered_products = filter(query=query, index=index)
+    if (len(filtered_products) == 0):
+        return None
     scores = rank_tf_idf(
         query_terms=query_terms,
         products=filtered_products,
@@ -232,27 +227,54 @@ def engine_search(query, index, tf, idf, weights):
     )
     return scores
 
+def get_index_and_metrics(corpus):
+    file_path = os.path.join(os.getcwd(), "data", "index_and_metrics.json")
+
+    if os.path.exists(file_path):
+        print("\033[34mLoading index and measures...\033[0m")
+        with open(file_path, "r") as f:
+            data = json.load(f)
+        return data["index"], data["index2title"], data["tf"], data["df"], data["idf"]
+    else:
+        print("\033[34mComputing index and measures... (this might take a while)\033[0m")
+        index, index2title, tf, df, idf = create_index_tf_idf(corpus)
+        data = {
+            "index": index,
+            "index2title": index2title,
+            "tf": tf,
+            "df": df,
+            "idf": idf
+        }
+        with open(file_path, "w") as f:
+            json.dump(data, f, indent=2)
+        return index, index2title, tf, df, idf
+
+# -------------------- SEARCH ENGINE ---------------------------------------------------- #
 
 if __name__ == "__main__":
     # Load the corpus
+    print("\033[34mLoading corpus...\033[0m")
     json_path = os.getenv("DATA_FILE_PATH")
     corpus = corpus_df_loading(json_path)
 
     # Create index
-    index, index2title, tf, df, idf = create_index_tf_idf(corpus)
+    index, index2title, tf, df, idf = get_index_and_metrics(corpus)
 
-    print("Clothing Articles Search Engine")
+    print("\033[33m\nClothing Articles Search Engine\033[0m")
     exit = False
     while(not exit):
-        query = input("Enter search terms: ")
-        scored_products = engine_search(query, index, tf, idf, weights, index2title)
-        
-        print("Products found:")
-        for idx, (score, pid) in enumerate(scored_products):
-            print(f"{idx+1}. [{score:.3f}] {[index2title[pid]]}")
-        print("-------------------------------------------------------------------------------------------------------------------\n")
+        query = input("\033[33m\nEnter search terms: \033[0m")
+        scored_products = engine_search(query, index, tf, idf, weights)
+        if scored_products != None:
+            print(f"\033[32mProducts found (10/{len(scored_products)}):\033[0m")
+            for idx, (score, pid) in enumerate(scored_products):
+                if(idx >= 10):
+                    break
+                print(f"{idx+1}. [idf={score:.3f}] {index2title[pid]}")
+        else:
+            print("\033[32mNo results found!\033[0m")
 
-        answer = input("Would you like to do another search[Y/n]: ").strip().lower()
-        exit = answer in ("y", "yes", "")
+        answer = input("\033[33mWould you like to do another search[Y/n]: \033[0m").strip().lower()
+        exit = answer in ("N", "n", "no", "No", "NO")
         
     
