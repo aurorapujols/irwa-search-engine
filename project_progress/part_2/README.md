@@ -1,6 +1,6 @@
 # PART 2: Indexing and Evaluation
 
-#TODO: introduction
+As with Part 1, we decided to complement the [Jupyter Notebook](indexing_and_evaluation.ipynb) with a .py file named [index_tf_idf.py](index_tf_idf.py) that, in this case, starts a console search engine using the functions created in this part.
 
 ## Functions Description
 
@@ -190,4 +190,19 @@ results = engine_search("women purple jeans", index)
 
 ## Code Execution
 
-TODO(...)
+### `indexing_and_evaluation.ipynb`
+To execute the Jupyter Notebook, just make sure that the environment `irwa_venv` is selected as the Kernel (Python Interpereter).
+
+Open the file in VSCode or download it and upload it into Google colab together with the folder `data` containing the JSON file with the corpus. Then, execute cell by cell to rerun the code and reload the output.
+
+### `index_tf_idf.py`
+To start the search engine, this file needs to be executed. To do so, go in the terminal and make sure the `irwa_venv` is running. Then, execute the following command in the root folder of the repository:
+
+```bash
+python -m project_progress.part_2.index_tf_idf
+```
+
+Take into account that the first time it is executed, it needs to compute the index and it takes around 1 minute.
+
+Once the index is loaded, the engine starts and you should see this output:
+![alt text](assets/engine_output.png)

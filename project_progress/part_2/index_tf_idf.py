@@ -270,7 +270,7 @@ if __name__ == "__main__":
             for idx, (score, pid) in enumerate(scored_products):
                 if(idx >= 10):
                     break
-                print(f"{idx+1}. [idf={score:.3f}] {index2title[pid]}")
+                print(f"{idx+1}. [tf-idf={score:.3f}] {index2title[pid]}")
         else:
             print("\033[32mNo results found!\033[0m")
 
