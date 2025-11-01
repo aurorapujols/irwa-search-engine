@@ -241,11 +241,18 @@ if __name__ == "__main__":
     # Create index
     index, index2title, tf, df, idf = create_index_tf_idf(corpus)
 
-    query = input("Enter search terms: ")
+    print("Clothing Articles Search Engine")
+    exit = False
+    while(not exit):
+        query = input("Enter search terms: ")
+        scored_products = engine_search(query, index, tf, idf, weights, index2title)
+        
+        print("Products found:")
+        for idx, (score, pid) in enumerate(scored_products):
+            print(f"{idx+1}. [{score:.3f}] {[index2title[pid]]}")
+        print("-------------------------------------------------------------------------------------------------------------------\n")
 
-    scored_products = engine_search(query, index, tf, idf, weights, index2title)
+        answer = input("Would you like to do another search[Y/n]: ").strip().lower()
+        exit = answer in ("y", "yes", "")
+        
     
-    print("Products found:")
-    for idx, (score, pid) in enumerate(scored_products):
-        print(f"{idx+1}. [{score:.3f}] {[index2title[pid]]}")
-    print("-------------------------------------------------------------------------------------------------------------------\n")
