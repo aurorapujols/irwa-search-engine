@@ -7,7 +7,8 @@ from collections import defaultdict
 
 from numpy import linalg as la
 
-import nltk 
+import nltk
+
 nltk.download("stopwords")
 
 from nltk.stem import PorterStemmer
@@ -19,7 +20,16 @@ from project_progress.part_1.data_prep import (
 )
 
 from dotenv import load_dotenv
+
 load_dotenv()
+
+weights = {
+        "title_description": 0.5,
+        "brand": 0.05,
+        "category": 0.2,
+        "sub_category": 0.2,
+        "seller_product_details": 0.05,
+} 
 
 def create_index_tf_idf(corpus):
     """
@@ -29,8 +39,8 @@ def create_index_tf_idf(corpus):
     corpus -- list of Documents containing the description of the product
 
     Returns:
-    index - the inverted index (implemented through a Python dictionary) containing terms as keys and the corresponding
-    list of document these keys appears in (and the positions) as values.
+    index - the inverted index (implemented through a Python dictionary) containing terms as keys 
+     and the corresponding list of document these keys appears in (and the positions) as values.
     index2title - a mapping of article pid to its title
     tf - normalized term frequency for each term in each document
     df - number of documents each term appear in
@@ -54,7 +64,10 @@ def create_index_tf_idf(corpus):
         category_terms = join_build_terms([product.category])
         sub_category_terms = join_build_terms([product.sub_category])
         seller_product_details = join_build_terms(
-            [product.seller, " ".join([detail for detail in product.product_details.values()])]
+            [
+                product.seller,
+                " ".join([detail for detail in product.product_details.values()]),
+            ]
         )  # Pre-process the `title` and `description`
 
         # Fields and target terms to process
@@ -85,14 +98,16 @@ def create_index_tf_idf(corpus):
                     # Add the new found term's position to the dict
                     current_article_index[term][field][1].append(position)
                 except:
-                    # Create the entry for the term and field with the term's position if it didn't exist
+                    # Create the entry for the term and field if it didn't exist
                     current_article_index[term][field] = [product.pid, [position]]
 
         seen_terms = set()
         for field in fields:
             norm = 0
             for term, postings in current_article_index.items():
-                if field in postings.keys():    # Check that the term appear in the current field
+                if (
+                    field in postings.keys()
+                ):  # Check that the term appear in the current field
                     norm += len(postings[field][1]) ** 2
             norm = math.sqrt(norm)
 
@@ -101,30 +116,25 @@ def create_index_tf_idf(corpus):
                     pid = postings[field][0]
                     # Compute term frequency and document frequency of each term per category
                     tf[pid][term][field] = np.round(len(postings[field][1]) / norm, 4)
-                    
 
-                    # In the practice, the tf/df and the index were in separate loops. Both codes are now in one
-                    # loop to avoid reading the same twice
+                    # In the practice, the tf/df and the index were in separate loops. Both 
+                    # codes are now in one loop to avoid reading the same twice
                     # Join the current article's index with the global index
-                    try:
+                    try: # Add the array of positions ("[id, [[0],[1]]]"") in the given term and field
                         index[term][field].append(
                             postings[field]
-                        )  # Add the array of positions ("[id, [[0],[1]]]"") in the given term and field
-                    except:
+                        )  
+                    except: # Create the entry for the term and the field with the array of positions
                         index[term][field] = [
                             postings[field]
-                        ]  # Create the entry for the term and the field with the array of positions
+                        ]  
 
                 if term not in seen_terms:
-                    df[term] += 1 
+                    df[term] += 1
                     seen_terms.add(term)
-        
-
 
     for term in df.keys():
-        idf[term] = (
-            np.round(np.log(float(num_articles / df[term])), 4)
-        )
+        idf[term] = np.round(np.log(float(num_articles / df[term])), 4)
 
     return index, index2title, tf, df, idf
 
@@ -144,10 +154,9 @@ def rank_tf_idf(query_terms, products, index, tf, idf, weights):
     Returns:
     Print the list of product ids of the ranked articles
     """
-    # For the docs, take only the components for the query terms 
-    product_vectors = defaultdict(lambda: [0]*len(query_terms))
+    # For the docs, take only the components for the query terms
+    product_vectors = defaultdict(lambda: [0] * len(query_terms))
     query_vector = [0] * len(query_terms)
-
 
     # Compute the norm for the query tf
     query_term_counts = collections.Counter(query_terms)
@@ -159,25 +168,27 @@ def rank_tf_idf(query_terms, products, index, tf, idf, weights):
             continue
 
         # tf*idf (normalize TF)
-        query_vector[term_idx] = (query_term_counts[q_term]/query_norm) * idf[q_term]
+        query_vector[term_idx] = (query_term_counts[q_term] / query_norm) * idf[q_term]
 
         # Compute the document vectors
         second_loop = False
         for field, postings in index[q_term].items():
             for pid, positions in postings:
-                # print(pid)
-                # print(positions)
-                # print(type(tf[pid][q_term][field]))
-                # print(type(weights[field]))
                 if pid in products:
-                    product_vectors[pid][term_idx] += tf[pid][q_term][field]* weights[field]
-        
-    product_scores = [[np.dot(current_prod_vec, query_vector), prod] for prod, current_prod_vec in product_vectors.items()]
+                    product_vectors[pid][term_idx] += (
+                        tf[pid][q_term][field] * weights[field]
+                    )
+
+    product_scores = [
+        [np.dot(current_prod_vec, query_vector), prod]
+        for prod, current_prod_vec in product_vectors.items()
+    ]
     product_scores.sort(reverse=True)
 
     return product_scores
 
-def search(query, index):
+
+def filter(query, index):
     """
     The output is the list of documents that contain ALL query terms.
 
@@ -208,11 +219,18 @@ def search(query, index):
 
     return query_terms, list(docs)
 
-def search_ranking(query, index, tf, idf, weights):
-    query_terms, products = search(query=query, index=index)
-    return rank_tf_idf(query_terms=query_terms,products=products, index=index, tf=tf, idf=idf, weights=weights)
 
-
+def engine_search(query, index, tf, idf, weights):
+    query_terms, filtered_products = filter(query=query, index=index)
+    scores = rank_tf_idf(
+        query_terms=query_terms,
+        products=filtered_products,
+        index=index,
+        tf=tf,
+        idf=idf,
+        weights=weights,
+    )
+    return scores
 
 
 if __name__ == "__main__":
@@ -220,77 +238,14 @@ if __name__ == "__main__":
     json_path = os.getenv("DATA_FILE_PATH")
     corpus = corpus_df_loading(json_path)
 
-    # Create index 
+    # Create index
     index, index2title, tf, df, idf = create_index_tf_idf(corpus)
 
+    query = input("Enter search terms: ")
 
-# if __name__ == "__main__":
-
-#     # Load the corpus
-#     json_path = os.getenv("DATA_FILE_PATH")
-#     corpus = corpus_df_loading(json_path)
-
-#     weights = {
-#         "title_description": 1.0,
-#         "brand": 0.5,
-#         "category": 0.3,
-#         "sub_category": 0.4,
-#         "seller_product_details": 0.2,
-#     }
-
-#     # INDEX_FILE = "inverted_index_tf_idf.json"
-
-#     # try:
-#     #     with open(INDEX_FILE, "r") as f:
-#     #         data = json.load(f)
-#     #         index = data["inverted_index"]
-#     #         index2title = data["index2title"]
-#     #         tf = data["tf"]
-#     #         df = data["df"]
-#     #         idf = data["idf"]
-#     #     print(f"Index loaded from '{INDEX_FILE}'")
-
-#     # except (FileNotFoundError, json.JSONDecodeError, KeyError):
-#     #     print("Index file not found or invalid. Computing index...")
-#     #     index, index2title, tf, df, idf = create_index_tf_idf(corpus)
-
-#     #     data = {
-#     #         "inverted_index": index,
-#     #         "index2title": index2title,
-#     #         "tf": tf,
-#     #         "df": df,
-#     #         "idf": idf
-#     #     }
-
-#     #     with open(INDEX_FILE, "w") as f:
-#     #         json.dump(data, f, indent=2)
-
-#     #     print(f"Inverted index created and saved to '{INDEX_FILE}'")
-
-#     # args = {
-#     #     "idf": data["idf"],
-#     #     "tf": data["tf"],
-#     #     "index2title": data["index2title"]
-#     # }
-
-#     # index, index2title, tf, df, idf = create_index_tf_idf(corpus)
-#     # args = {
-#     #     "idf": idf,
-#     #     "tf": tf,
-#     #     "index2title": index2title
-#     # }
-
-#     # query = input("Search: ")
-
-#     index, index2title, tf, df, idf = create_index_tf_idf(corpus)
-
-#     query = "slim jeans"
-#     ranked_docs = search(query, index, tf, idf, weights, index2title)
-#     print("Results:")
-#     print(ranked_docs)
-
-
-
-#     # Perform search
-#     # docs = search("men slim jeans blue", index)
-#     # print(f"Selected docs: {docs}")
+    scored_products = engine_search(query, index, tf, idf, weights, index2title)
+    
+    print("Products found:")
+    for idx, (score, pid) in enumerate(scored_products):
+        print(f"{idx+1}. [{score:.3f}] {[index2title[pid]]}")
+    print("-------------------------------------------------------------------------------------------------------------------\n")
