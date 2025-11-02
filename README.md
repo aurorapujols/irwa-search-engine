@@ -40,7 +40,8 @@
 ----
 ## Project Progress Execution
 
-+ [Part1](project_progress/part_1/README.md)
++ [Part 1: Text Processing and Exploratory Data Analysis](project_progress/part_1/README.md)
++ [Part 2: Indexing and Evaluation](project_progress/part_2/README.md)
 
 
 ----
