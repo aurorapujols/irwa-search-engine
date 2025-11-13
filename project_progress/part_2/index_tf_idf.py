@@ -171,7 +171,7 @@ def rank_tf_idf(query_terms, products, index, tf, idf, weights):
             for pid, positions in postings:
                 if pid in products:
                     product_vectors[pid][term_idx] += (
-                        tf[pid][q_term][field] * weights[field]
+                        tf[pid][q_term][field] * idf[q_term] * weights[field]
                     )
 
     product_scores = [
