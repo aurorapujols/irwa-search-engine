@@ -135,7 +135,7 @@ def rank_tf_idf_cosine_similarity(query_terms, products, index, tf, idf, weights
 
     for pid, current_prod_vec in product_vectors.items():
         doc_norm = np.linalg.norm(current_prod_vec)
-        if doc_norm == 0 or query_norm == 0:
+        if doc_norm == 0:
             score = 0.0
         else:
             score = np.dot(current_prod_vec, query_vector) / doc_norm
@@ -220,7 +220,7 @@ def rank_BM25(query_terms, products, filtered_prod, idf, Ld, Lave, k1=1.2, b=0.7
 
 # Custom ranking ------------------------------------------------------------------------#
 def rank_custom(query_terms, metadata, products, filtered_prod, idf, Ld, Lave, k1=1.2, b=0.75, \
-                lambda_=0.6, popularity=0.3, affordability=0.7, availability=0.01):
+                lambda_=0.3, popularity=0.3, affordability=0.7, availability=0.01):
     """
     Custom ranking function.
 
@@ -370,8 +370,7 @@ if __name__ == "__main__":
                                         filtered_prod=filtered_prod,
                                         idf=idf,
                                         Ld=Ld,
-                                        Lave=Lave,
-                                        lambda_=0.3)
+                                        Lave=Lave)
             print_ranking(scores=scores_custom, index2title=index2title)
 
 
