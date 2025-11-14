@@ -231,7 +231,7 @@ def get_index_and_metrics(corpus):
     file_path = os.path.join(os.getcwd(), "data", "index_and_metrics.json")
 
     if os.path.exists(file_path):
-        print("\033[34mLoading index and measures...\033[0m")
+        print("\n\033[34mLoading index and measures...\033[0m")
         with open(file_path, "r") as f:
             data = json.load(f)
         return data["index"], data["index2title"], data["tf"], data["df"], data["idf"]
