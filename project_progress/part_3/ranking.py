@@ -17,8 +17,8 @@ load_dotenv()  # take environment variables from .env
 
 # Preprocessing -------------------------------------------------------------------------#
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-products_filepath = os.path.join(BASE_DIR, "data", "products.json")
-products_numeric_data_filepath = os.path.join(BASE_DIR, "data", "products_numeric_data.json")
+products_filepath = os.path.join(BASE_DIR, "..", "..", "data", "products.json")
+products_numeric_data_filepath = os.path.join(BASE_DIR, "..", "..", "data", "products_numeric_data.json")
 
 def dump_data(data, filepath):
     with open(filepath, 'w', encoding='utf-8') as f:
@@ -299,7 +299,7 @@ def print_ranking(scores, index2title):
     :param index2title: (dict) pid -> (string) content of the "title" field of the product
     """
     for idx, (score, pid) in enumerate(scores):
-        print(f"{idx+1:4}. [score={score:.2f}] {index2title[pid]}")
+        print(f"{idx+1:4}. [score={score:.3f}] {index2title[pid]}")
 # ---------------------------------------------------------------------------------------#
 
 if __name__ == "__main__":
