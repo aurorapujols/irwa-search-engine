@@ -14,7 +14,7 @@ from collections import defaultdict, Counter
 from dotenv import load_dotenv
 
 from myapp.search import load_corpus as lc
-from project_progress.part_1.data_prep import corpus_df_loading, build_terms, join_build_terms
+from project_progress.part_1.data_prep import corpus_df_loading
 from project_progress.part_2.index_tf_idf import get_index_and_metrics
 from project_progress.part_3.ranking import (
     get_or_create,
@@ -28,33 +28,10 @@ from gensim.parsing.preprocessing import preprocess_string
 
 load_dotenv()  # take environment variables from .env
 
-# Preprocessing -------------------------------------------------------------------------#
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 product_sentences_filepath = os.path.join(BASE_DIR, "..", "..", "data", "products.json")
 
-
-# def get_product_sentences(corpus, preprocess=preprocess_string):
-#     """
-#     Function that loads the products of the corpus as a dictionary of pid -> list (of sentences. A sentence is the joined values of categorical data per affine categories: title + description, brand + category + subcategory, seller + details)
-
-#     :param corpus: Corpus with all the products and all their data.
-#     :return product_sentences: (dict) pid -> lists of tokens (all preprocessed terms of the categorical data per grouped subcategories)
-#     """
-#     products_sentences = {}
-
-#     for product in list(corpus.values()):
-#         # Process the documents categorical fields as in the creation of the inverted index, but concatenate all the terms in a single string (in this case we do not care about the fields)
-#         subgroups = [
-#             " ".join([product.title, product.description]),
-#             " ".join([product.brand, product.category, product.sub_category]),
-#             " ".join([product.seller, 
-#                       " ".join([detail for detail in product.product_details.values()])]
-#                       )
-#             ]
-#         products_sentences[product.pid] = [preprocess(group) for group in subgroups]
-        
-#     return products_sentences
-# ---------------------------------------------------------------------------------------#
 
 # Word2Vec embedding --------------------------------------------------------------------#
 def get_training_sentences(product_sentences):
@@ -96,7 +73,12 @@ def train_word2vec_model(sentences, vector_size=100, window=7, min_count=5, nega
     return model
 
 def build_text_terms(sentences):
-
+    """
+    Function that builds a list of terms from the given sentences.
+    
+    :param sentences: List of tokenized sentences.
+    :return term_list: List of terms.
+    """
     term_list = []
     for sentence in sentences:
         term_list.extend(sentence)
@@ -104,7 +86,13 @@ def build_text_terms(sentences):
     return term_list
 
 def get_embedding(text, model:Word2Vec):
+    """
+    Function that computes the embedding of a document by averaging the embeddings of its terms.
 
+    :param text: List of tokenized sentences representing the document.
+    :param model: Trained Word2Vec model.
+    :return embedding: Numpy array representing the document embedding.
+    """
     doc_terms = build_text_terms(text)
     word_embeddings = [model.wv[word] if word in model.wv else np.zeros(model.vector_size) for word in doc_terms]
 
@@ -112,33 +100,18 @@ def get_embedding(text, model:Word2Vec):
     return embedding
 
 def get_document_embeddings(word2vec_model, product_sentences):
+    """
+    Function that computes the document embeddings for all products.
+    
+    :param word2vec_model: Trained Word2Vec model.
+    :param product_sentences: Dictionary of pid -> list of tokenized sentences.
+    :return doc_embeddings: Dictionary of pid -> document embedding.
+    """
     doc_embeddings = {}
     for pid, sentences in product_sentences.items():
         doc_embeddings[pid] = get_embedding(sentences, word2vec_model)
     return doc_embeddings
 
-# def get_document_embeddings(word2vec_model, product_sentences):
-#     """
-#     Function that computes the document embeddings for each product by averaging the Word2Vec embeddings of the words in its sentences.
-
-#     :param word2vec_model: Trained Word2Vec model.
-#     :param product_sentences: Dictionary of pid -> list of tokenized sentences.
-#     :return doc_embeddings: Dictionary of pid -> document embedding (numpy array).
-#     """
-#     doc_embeddings = {}
-
-#     for pid, sentences in product_sentences.items():
-#         all_word_vectors = []
-
-#         for word in sentences:
-#             if word in word2vec_model.wv:
-#                 all_word_vectors.extend(word2vec_model.wv[word])
-#             else:
-#                 all_word_vectors.extend(np.zeros(word2vec_model.vector_size))
-
-#         doc_embeddings[pid] = np.mean(all_word_vectors, axis=0)
-
-#     return doc_embeddings
 # ---------------------------------------------------------------------------------------#
 
 # Ranking -------------------------------------------------------------------------------#
@@ -159,6 +132,14 @@ def cosine_similarity(document_representation, query_representation):
     return dot_product / (norm_document)
 
 def rank_documents(w2v_model, doc2vec, query, preprocess=preprocess_string):
+    """
+    Function that ranks documents based on their cosine similarity to the query.
+    :param w2v_model: Trained Word2Vec model.
+    :param doc2vec: Dictionary of pid -> document embedding.
+    :param query: Query string.
+    :param preprocess: Preprocessing function to apply to the query.
+    :return sim_scores: List of [similarity score, pid] sorted in descending order
+    """
     query_terms = preprocess_string(query)
     query_embedding = get_embedding(query_terms, w2v_model)
 
@@ -171,68 +152,6 @@ def rank_documents(w2v_model, doc2vec, query, preprocess=preprocess_string):
 
     return sim_scores
 
-# def rank_documents(word2vec_model, doc_embeddings, query):
-#     """
-#     Function that ranks documents based on their cosine similarity to the query.
-
-#     :param word2vec_model: Trained Word2Vec model.
-#     :param doc_embeddings: Dictionary of pid -> document embedding (numpy array).
-#     :param query: Query string.
-#     :return similarities: List of [similarity score, pid] sorted in descending order of similarity.
-#     """    
-#     preprocessed_query = preprocess_string(query)
-
-#     # Compute the query embedding
-#     query_vectors = []
-
-#     for word in preprocessed_query:
-#         if word in word2vec_model.wv:
-#             query_vectors.append(word2vec_model.wv[word])
-#         else:
-#             query_vectors.append(np.zeros(word2vec_model.vector_size))
-
-#     if len(query_vectors) == 0:
-#         query_embedding = np.zeros(word2vec_model.vector_size)
-#     else:
-#         query_embedding = np.mean(query_vectors, axis=0)
-    
-#     # Compute similarities and rank documents
-#     similarities = []
-#     for pid, doc_embedding in doc_embeddings.items():
-#         sim = cosine_similarity(doc_embedding, query_embedding)
-#         similarities.append([sim, pid])
-#     similarities.sort(key=lambda x: x[0], reverse=True)
-
-#     return similarities
-
-# ---------------------------------------------------------------------------------------#
-
-# Pipeline ------------------------------------------------------------------------------#
-# def filter(query, doc_embeddings, product_sentences):
-#     """
-#     Function to filter the products based on the presence of all query terms in the product sentences.
-
-#     :param query: (string) The user query. 
-#     :param doc_embeddings: (dict) pid -> document embedding (numpy array).
-#     :param product_sentences: (dict) pid -> list of tokenized sentences.
-#     :return processed_query: (list) of preprocessed query terms.
-#     :return filtered_doc_embeddings: (dict) pid -> document embedding (numpy array) after filtering.
-#     """
-#     # Preprocess the query and extract terms
-#     processed_query = preprocess_string(query)
-#     query_terms = set(processed_query)
-
-#     # Filter documents that contain all query terms
-#     filtered_doc_embeddings = {}
-#     for pid, sentences in product_sentences.items():
-#         all_terms = set()
-#         for sentence in sentences:
-#             all_terms.update(sentence)
-#         if all_terms.intersection(query_terms) == query_terms:
-#             filtered_doc_embeddings[pid] = doc_embeddings[pid]  
-
-#     return processed_query, filtered_doc_embeddings
-        
 # ---------------------------------------------------------------------------------------#
 
 if __name__ == "__main__":
@@ -271,7 +190,6 @@ if __name__ == "__main__":
         '''STEP 1: filter the products'''
         _, filtered_docs = filter(query=query, products=product_sentences)
         filtered_doc_embeddings = {pid: doc_embeddings[pid] for pid in filtered_docs}
-        # preprocessed_query, filtered_doc_embeddings = filter(query=query, doc_embeddings=doc_embeddings, product_sentences=product_sentences)
         if (len(filtered_doc_embeddings) == 0):   # Compute ranking only if we found documents during filtering
             print("\n\033[91mNo results!\033[0m")
         else:
