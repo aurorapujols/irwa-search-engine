@@ -38,7 +38,7 @@ Example:
 products = get_or_create(products_filepath, lambda: process_products(corpus))
 ```
 
-### 3. ``rank_tf_idf_cosine_similarity(query_terms, products, index, tf, idf, weights)
+### 3. ``rank_tf_idf_cosine_similarity(query_terms, products, index, tf, idf, weights)``
 
 **Description**: Perform the ranking of the results of a search based on the tf-idf weights and using cosine similarity
 
@@ -112,7 +112,7 @@ scores_BM25 = rank_BM25(query_terms=query_terms,
 ```
 
 
-### 6. ``rank_custom(query_terms, metadata, products, filtered_prod, idf, Ld, Lave, k1=1.2, b=0.75, lambda_=0.3, popularity=0.3, affordability=0.7, availability=0.01):``
+### 6. ``rank_custom(query_terms, metadata, products, filtered_prod, idf, Ld, Lave, k1=1.2, b=0.75, lambda_=0.3, popularity=0.3, affordability=0.7, availability=0.01)``
 
 **Description**: Custom ranking function combining BM25 relevance with product metadata such as popularity, affordability, and availability.
 
@@ -172,9 +172,6 @@ query_terms, filtered_prod = filter(query, products=products)
 **Parameters**:
 + ``scores`` (list): List of [score, pid] pairs, where each score corresponds to the relevance score of the document with ID ``pid``.
 + ``index2title`` (dict): Mapping pid → title string of the corresponding product.
-
-**Returns**:
-+ *(None)* This function only prints the ranking.
 
 Example:
 
@@ -314,19 +311,37 @@ scores_w2vcossim = rank_documents(word2vec_model, filtered_doc_embeddings, query
 
 ## Code Execution
 
-### `indexing_and_evaluation.ipynb`
-To execute the Jupyter Notebook, just make sure that the environment `irwa_venv` is selected as the Kernel (Python Interpereter).
+### `ranking_filtering.ipynb`
+To execute the Jupyter Notebook, just make sure that the environment `irwa_venv` is selected as the Kernel (Python Interpereter). 
 
-Open the file in VSCode or download it and upload it into Google colab together with the folder `data` containing the JSON file with the corpus. Then, execute cell by cell to rerun the code and reload the output.
+Open the file in VSCode or download it and upload it into Google colab together with the folder `data` containing the JSON file with the corpus. Then, execute cell by cell to rerun the code and reload the output.  
+This notebook can redirect you to the ``word2vec.ipynb`` Jupyter Notebook. Make sure to have both notebooks in the same directory when you open VSCode, or to upload both to Google colab, if you want to access it. 
 
-### `index_tf_idf.py`
+### `word2vec.ipynb`
+This notebook has no dependencies and can be executed alone. To execute the Jupyter Notebook, just make sure that the environment `irwa_venv` is selected as the Kernel (Python Interpereter). 
+
+Open the file in VSCode or download it and upload it into Google colab together with the folder `data` containing the JSON file with the corpus. Then, execute cell by cell to rerun the code and reload the output.  
+
+### `ranking.py`
 To start the search engine, this file needs to be executed. To do so, go in the terminal and make sure the `irwa_venv` is running. Then, execute the following command in the root folder of the repository:
 
 ```bash
-python -m project_progress.part_2.index_tf_idf
+python -m project_progress.part_3.ranking
 ```
 
-Take into account that the first time it is executed, it needs to compute the index and it takes around 1 minute.
+Take into account that the first time it is executed, it needs to compute the index and it takes around 1 minute. If you excecuted ``word2vec.ipynb`` before, this will not happen as the index has been already computed
 
 Once the index is loaded, the engine starts and you should see this output:
+![alt text](assets/engine_output.png)
+
+### `word2vec.py`
+To compute the ranking of the 5 queries we saw in PART_2, this file needs to be executed. To do so, go in the terminal and make sure the `irwa_venv` is running. Then, execute the following command in the root folder of the repository:
+
+```bash
+python -m project_progress.part_3.word2vec
+```
+
+Take into account that the first time it is executed, it needs to compute the index and it takes around 1 minute. If you excecuted ``ranking.ipynb`` before, this will not happen as the index has been already computed.
+
+Once the index is loaded, the automatic ranking calculations start and you should see this output:
 ![alt text](assets/engine_output.png)
