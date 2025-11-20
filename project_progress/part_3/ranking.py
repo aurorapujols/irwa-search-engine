@@ -17,8 +17,8 @@ load_dotenv()  # take environment variables from .env
 
 # Preprocessing -------------------------------------------------------------------------#
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-products_filepath = os.path.join(BASE_DIR, "data", "products.json")
-products_numeric_data_filepath = os.path.join(BASE_DIR, "data", "products_numeric_data.json")
+products_filepath = os.path.join(BASE_DIR, "..", "..", "data", "products.json")
+products_numeric_data_filepath = os.path.join(BASE_DIR, "..", "..", "data", "products_numeric_data.json")
 
 def dump_data(data, filepath):
     with open(filepath, 'w', encoding='utf-8') as f:
@@ -96,7 +96,7 @@ def rank_tf_idf_cosine_similarity(query_terms, products, index, tf, idf, weights
     """
     Perform the ranking of the results of a search based on the tf-idf weights and using cosine similarity
 
-    :param terms: list of query terms
+    :param query_terms: list of query terms
     :param products: list of products to rank that match the query
     :param index: inverted index data structure
     :param tf: term frequencies
@@ -298,8 +298,12 @@ def print_ranking(scores, index2title):
     :param scores: (list) of value pairs [score, pid] with score being the score for the document pid
     :param index2title: (dict) pid -> (string) content of the "title" field of the product
     """
+    top_n = min(10, len(scores))
+    print(f"\033[32mProducts found ({top_n}/{len(scores)}):\033[0m")
     for idx, (score, pid) in enumerate(scores):
-        print(f"{idx+1:4}. [score={score:.2f}] {index2title[pid]}")
+        if idx >= top_n:
+            break
+        print(f"{idx+1:4}. [score={score:.3f}] {index2title[pid]}")
 # ---------------------------------------------------------------------------------------#
 
 if __name__ == "__main__":
@@ -374,6 +378,6 @@ if __name__ == "__main__":
             print_ranking(scores=scores_custom, index2title=index2title)
 
 
-        answer = input("\033[33mWould you like to do another search[Y/n]: \033[0m").strip().lower()
+        answer = input("\n\033[33mWould you like to do another search[Y/n]: \033[0m").strip().lower()
         exit = answer in ("N", "n", "no", "No", "NO")
     # ENGINE END
