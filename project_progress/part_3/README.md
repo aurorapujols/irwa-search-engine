@@ -1,6 +1,6 @@
 # P# PART 2: Ranking and Filtering
 
-As with Parts 1 and 2, we decided to complement the [Jupyter Notebook](ranking.ipynb) with two .py file named [ranking_filtering.py](ranking_filtering.py) and [word2vec.py](word2vec.py). The **first** one starts a console search engine using the different rankings implemented in this part, and the **second** one shows the top matching documents for 5 predefined queries (ranked using word2vec plus cosine similarity).
+As with Parts 1 and 2, we decided to complement the [Jupyter Notebook](ranking_filtering.ipynb) with two .py file named [ranking.py](ranking.py) and [word2vec.py](word2vec.py). The **first** one starts a console search engine using the different rankings implemented in this part, and the **second** one shows the top matching documents for 5 predefined queries.
 
 ## Functions Description
 
@@ -331,7 +331,7 @@ python -m project_progress.part_3.ranking
 
 Take into account that the first time it is executed, it needs to compute the index and it takes around 1 minute. If you excecuted ``word2vec.ipynb`` before, this will not happen as the index has been already computed
 
-Once the index is loaded, the engine starts and you should see this output:
+Once the index is loaded, the engine starts and you should see this output:  
 ![alt text](assets/engine_output.png)
 
 ### `word2vec.py`
@@ -343,5 +343,5 @@ python -m project_progress.part_3.word2vec
 
 Take into account that the first time it is executed, it needs to compute the index and it takes around 1 minute. If you excecuted ``ranking.ipynb`` before, this will not happen as the index has been already computed.
 
-Once the index is loaded, the automatic ranking calculations start and you should see this output:
-![alt text](assets/engine_output.png)
+Once the index is loaded, the automatic ranking calculations start and you should see this output:  
+![alt text](assets/word2vec_output.png)

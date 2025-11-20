@@ -30,20 +30,20 @@ load_dotenv()  # take environment variables from .env
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-product_sentences_filepath = os.path.join(BASE_DIR, "..", "..", "data", "products.json")
+products_filepath = os.path.join(BASE_DIR, "..", "..", "data", "products.json")
 
 
 # Word2Vec embedding --------------------------------------------------------------------#
-def get_training_sentences(product_sentences):
+def get_training_sentences(products):
     """
-    Function that builds the training sentences from the product sentences.
+    Function that builds the training sentences from the product description as text.
 
-    :param product_sentences: Dictionary of pid -> list of tokenized sentences.
+    :param products: Dictionary of pid -> product text description.
     :return sentences: List of tokenized sentences for training the Word2Vec model.
     """
     sentences = []
 
-    for prod_sentences in product_sentences.values():
+    for prod_sentences in products.values():
         sentences.extend(prod_sentences)
 
     return sentences
@@ -99,16 +99,16 @@ def get_embedding(text, model:Word2Vec):
     embedding = np.mean(word_embeddings, axis=0)
     return embedding
 
-def get_document_embeddings(word2vec_model, product_sentences):
+def get_document_embeddings(word2vec_model, products):
     """
     Function that computes the document embeddings for all products.
     
     :param word2vec_model: Trained Word2Vec model.
-    :param product_sentences: Dictionary of pid -> list of tokenized sentences.
+    :param products: Dictionary of pid -> text description.
     :return doc_embeddings: Dictionary of pid -> document embedding.
     """
     doc_embeddings = {}
-    for pid, sentences in product_sentences.items():
+    for pid, sentences in products.items():
         doc_embeddings[pid] = get_embedding(sentences, word2vec_model)
     return doc_embeddings
 
@@ -163,15 +163,15 @@ if __name__ == "__main__":
     print("\033[34mDONE! Starting preprocessing...\033[0m")
 
     # Preprocess the products and precompute the inverted index
-    product_sentences = get_or_create(product_sentences_filepath, lambda: process_products(corpus))
+    products = get_or_create(products_filepath, lambda: process_products(corpus))
     print("\033[34mDONE! Computing metrics...\033[0m")
     index, index2title, tf, df, idf = get_index_and_metrics(corpus)
     # Build the embedding space and compute document embeddings
     print("\033[34mDONE! Creating embedding space...\033[0m")
-    training_sentences = get_training_sentences(product_sentences)
+    training_sentences = get_training_sentences(products)
     word2vec_model = train_word2vec_model(training_sentences)
     print("\033[34mDONE! Generating product embeddings...\033[0m")
-    doc_embeddings = get_document_embeddings(word2vec_model, product_sentences)
+    doc_embeddings = get_document_embeddings(word2vec_model, products)
     print("\033[34mREADY!\033[0m")
 
     # Show ranking for predetermined queries
@@ -188,7 +188,7 @@ if __name__ == "__main__":
         print(f"\n\033[92mQUERY: {query}\033[0m")
 
         '''STEP 1: filter the products'''
-        _, filtered_docs = filter(query=query, products=product_sentences)
+        _, filtered_docs = filter(query=query, products=products)
         filtered_doc_embeddings = {pid: doc_embeddings[pid] for pid in filtered_docs}
         if (len(filtered_doc_embeddings) == 0):   # Compute ranking only if we found documents during filtering
             print("\n\033[91mNo results!\033[0m")
