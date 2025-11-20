@@ -171,7 +171,7 @@ def rank_tf_idf(query_terms, products, index, tf, idf, weights):
             for pid, positions in postings:
                 if pid in products:
                     product_vectors[pid][term_idx] += (
-                        tf[pid][q_term][field] * weights[field]
+                        tf[pid][q_term][field] * idf[q_term] * weights[field]
                     )
 
     product_scores = [
@@ -231,7 +231,7 @@ def get_index_and_metrics(corpus):
     file_path = os.path.join(os.getcwd(), "data", "index_and_metrics.json")
 
     if os.path.exists(file_path):
-        print("\033[34mLoading index and measures...\033[0m")
+        print("\n\033[34mLoading index and measures...\033[0m")
         with open(file_path, "r") as f:
             data = json.load(f)
         return data["index"], data["index2title"], data["tf"], data["df"], data["idf"]
