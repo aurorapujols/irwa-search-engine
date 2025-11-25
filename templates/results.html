@@ -16,13 +16,13 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.3rem;
-    }
+  }
 
-    .badge-custom {
-        background-color: #c8102e; 
-        color: #fff; 
-        font-weight: 500;
-    }
+  .badge-custom {
+    background-color: #c8102e;
+    color: #fff;
+    font-weight: 500;
+  }
 
   .results-container {
     max-width: 900px;
@@ -35,13 +35,13 @@
     border-radius: 8px;
     background-color: #ffffff;
     padding: 1rem 1.25rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
     transition: transform 0.15s ease-in-out;
   }
 
   .summary-box:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
   .summary-box h5 {
@@ -52,18 +52,21 @@
 
   /* Individual Result Cards */
   .result-card {
+    position: relative;
+    padding-top: 25px;
+    /* extra space for the out-of-stock */
     padding: 1rem 1.25rem;
     border-radius: 8px;
     background-color: #fff;
     margin-bottom: 0.75rem;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
     transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
   }
 
   .result-card:hover {
     background-color: #f8f9fa;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
   /* Title & Link */
@@ -90,17 +93,35 @@
   .result-card:not(:last-child) {
     border-bottom: 1px solid #e9ecef;
   }
+
+  .out-of-stock-sticker {
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    color: #d9534f;
+    /* red text */
+    border: 1px solid #d9534f;
+    /* red border */
+    border-radius: 12px;
+    /* pill shape */
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    display: inline-block;
+  }
+
 </style>
 
 <div class="results-container">
 
   <!-- Results Header -->
-    <div class="results-header mb-4">
-        <span class="me-2">🔍 Found</span>
-        <span class="fw-bold text-primary">{{ found_counter }}</span>
-        <span>{% if found_counter != 1 %}results{% else %}result{% endif %} for</span>
-        <span class="badge badge-custom">"{{ search_query }}"</span>
-    </div>
+  <div class="results-header mb-4">
+    <span class="me-2">🔍 Found</span>
+    <span class="fw-bold text-primary">{{ found_counter }}</span>
+    <span>{% if found_counter != 1 %}results{% else %}result{% endif %} for</span>
+    <span class="badge badge-custom">"{{ search_query }}"</span>
+  </div>
 
   <!-- AI Summary -->
   {% if rag_response %}
@@ -110,26 +131,68 @@
   </div>
   {% endif %}
 
+  <!-- Show which ranking model was used -->
+  {% if selected_model %}
+  <div class="ranking-used mb-3">
+    <p class="text-muted">Ranking Model Used: <strong>{{ selected_model }}</strong></p>
+  </div>
+  {% endif %}
+
+
   <!-- Results List -->
   <div class="results-list">
 
     {% if results_list %}
-      
-      {% for item in results_list %}
-      <div class="result-card">
-        <div class="doc-title">
-          <a href="{{ item.url }}">{{ item.title }}</a>
-        </div>
-        <div class="doc-desc">
-          {% if item.doc_date %}{{ item.doc_date }} — {% endif %}{{ item.description }}
-        </div>
+
+    {% for item in results_list %}
+    <div class="result-card">
+
+      <!-- Title -->
+      <div class="doc-title">
+        <a href="{{ item.url }}" target="_blank">{{ item.title }}</a>
+
+        {% if item.out_of_stock %}
+        <span class="out-of-stock-sticker ms-2">
+          Out of Stock
+        </span>
+        {% endif %}
+
       </div>
-      {% endfor %}
+
+      <!-- Description -->
+      <div class="doc-desc">
+        {{ item.description }}
+      </div>
+
+      <!-- Price + Discount -->
+      <div class="doc-price mt-1">
+        <span class="fw-bold text-success">₹{{ item.selling_price }}</span>
+
+        {% if item.actual_price %}
+        <span class="text-muted text-decoration-line-through ms-2">₹{{ item.actual_price }}</span>
+        {% endif %}
+
+        {% if item.discount %}
+        <span class="badge bg-danger ms-2 text-white">{{ item.discount }}% OFF</span>
+        {% endif %}
+      </div>
+
+      <!-- Rating -->
+      <div class="doc-rating mt-1">
+        {% if item.average_rating %}
+        ⭐ <strong>{{ item.average_rating }}</strong> / 5
+        {% else %}
+        ⭐ <strong>No rating yet</strong>
+        {% endif %}
+      </div>
+
+    </div>
+    {% endfor %}
 
     {% else %}
-      <div class="no-results">
-        <p>No matches found.</p>
-      </div>
+    <div class="no-results">
+      <p>No matches found.</p>
+    </div>
     {% endif %}
   </div>
 

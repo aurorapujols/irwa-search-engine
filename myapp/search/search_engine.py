@@ -28,10 +28,11 @@ def get_search_results(corpus:dict, results, search_id, num_results=20):
     res = []
     results = np.array(results)
     docs_to_return = results[:min(len(results), num_results), 1]  # get up to num_results products, and get only the pids (not scores as well)
-    for doc_id in docs_to_return:
+    for rank, doc_id in enumerate(docs_to_return):
         doc = corpus[doc_id]
-        res.append(Document(pid=doc.pid, title=doc.title, description=doc.description,
-                            url="doc_details?pid={}&search_id={}&param2=2".format(doc.pid, search_id), ranking=random.random()))
+        res.append(Document(pid=doc.pid, title=doc.title, description=doc.description, selling_price=doc.selling_price, discount=doc.discount,
+                            average_rating=doc.average_rating, out_of_stock=doc.out_of_stock,
+                            url="doc_details?pid={}&search_id={}&param2=2".format(doc.pid, search_id), ranking=rank+1))
     return res
 
 
@@ -62,7 +63,7 @@ class SearchEngine:
         self.word2vec_model = train_word2vec_model(self.training_sentences)
         self.prod_embeddings = get_document_embeddings(self.word2vec_model, self.products_dict)
 
-    def search(self, search_query, search_id, corpus, search_type='tf_idf'):
+    def search(self, search_query, search_id, corpus, search_type='tf-idf'):
         print("Search query:", search_query)
 
         rankings = []
@@ -73,7 +74,7 @@ class SearchEngine:
         # results = dummy_search(corpus, search_id)
         if(query_terms and filtered_prod):
             match search_type:
-                case 'tf_idf':
+                case 'tf-idf':
                     rankings = get_tf_idf_ranking(query_terms, filtered_prod, self.tf_idf_index, self.tf_tfidf, self.idf_tfidf, self.weights_tf_idf)
                 case 'bm25':
                     rankings = get_bm25_ranking(query_terms, self.products_dict, filtered_prod, self.idf_bm25, self.Ld, self.Lave)

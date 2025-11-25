@@ -71,11 +71,13 @@ def index():
 @app.route('/search', methods=['POST'])
 def search_form_post():
     search_query = request.form['search-query']
+    selected_model = request.form.get('ranking-model', 'TF-IDF')  # default
     
     if not search_query:
         return redirect(url_for("index"))
 
     session['last_search_query'] = search_query
+    session['selected_model'] = selected_model
 
     # Save query and compute search id
     search_id = analytics_data.save_query_terms(search_query)
@@ -89,9 +91,10 @@ def search_form_post():
 def search_results():
     # Retrieve search query and search id from session
     search_query = session.get('last_search_query', '')
+    selected_model = session.get('selected_model', 'TF-IDF')
     search_id = session.get('search_id', None)
 
-    results = search_engine.search(search_query, search_id, corpus)
+    results = search_engine.search(search_query, search_id, corpus, search_type=selected_model.lower())
 
     # generate RAG response based on user query and retrieved results
     rag_response = rag_generator.generate_response(search_query, results)
@@ -106,7 +109,8 @@ def search_results():
         results_list=results,
         page_title="Results",
         found_counter=found_count,
-        rag_response=rag_response
+        rag_response=rag_response,
+        selected_model=selected_model
     )
 
 
