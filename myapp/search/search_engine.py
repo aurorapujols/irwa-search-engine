@@ -31,7 +31,8 @@ def get_search_results(corpus:dict, results, search_id, num_results=20):
     for rank, doc_id in enumerate(docs_to_return):
         doc = corpus[doc_id]
         res.append(Document(pid=doc.pid, title=doc.title, description=doc.description, selling_price=doc.selling_price, discount=doc.discount,
-                            average_rating=doc.average_rating, out_of_stock=doc.out_of_stock,
+                            average_rating=doc.average_rating, out_of_stock=doc.out_of_stock, category=doc.category, brand=doc.brand, 
+                            sub_category=doc.sub_category, product_details=doc.product_details,
                             url="doc_details?pid={}&search_id={}&param2=2".format(doc.pid, search_id), ranking=rank+1))
     return res
 

@@ -126,10 +126,13 @@
   <!-- AI Summary -->
   {% if rag_response %}
   <div class="summary-box mb-4">
-    <h5>AI‑Generated Summary</h5>
-    <p>{{ rag_response }}</p>
+      <h5>AI‑Generated Summary</h5>
+      <p>
+          {{ rag_response | safe }}
+      </p>
   </div>
   {% endif %}
+
 
   <!-- Show which ranking model was used -->
   {% if selected_model %}

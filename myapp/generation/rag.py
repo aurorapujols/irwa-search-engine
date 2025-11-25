@@ -1,22 +1,28 @@
 import os
 from groq import Groq
 from dotenv import load_dotenv
+
 load_dotenv()  # take environment variables from .env
 
 
 class RAGGenerator:
 
     PROMPT_TEMPLATE = """
-        You are an expert product advisor helping users choose the best option from retrieved e-commerce products.
+        You are an expert product advisor for an e-commerce system. You will receive retrieved products with structured metadata.
 
-        ## Instructions:
-        1. Identify the single best product that matches the user's request.
-        2. Present the recommendation clearly in this format:
-        - Best Product: [Product PID] [Product Name]
-        - Why: [Explain in plain language why this product is the best fit, referring to specific attributes like price, features, quality, or fit to user’s needs.]
-        3. If there is another product that could also work, mention it briefly as an alternative.
-        4. If no product is a good fit, return ONLY this exact phrase:
-        "There are no good products that fit the request based on the retrieved results."
+        1. Evaluate if any retrieved product meaningfully satisfies the user's request:
+        - A product satisfies the request ONLY if its attributes (price, features, category, specs, etc.) explicitly support the request.
+        - Cite only fields present in the retrieved products as evidence.
+        - If none qualify, respond ONLY AND EXACTLY: "There are no good products that fit the request based on the retrieved results."
+        - If the user query is empty or nonsensical, respond ONLY AND EXACTLY: "The user request is empty or does not make sense."
+        - Do NOT infer or guess missing information.
+
+        2. Present the recommendation clearly in this format using plain text and maximum 150 words:
+        - Best Product: Title  
+        - Why: Explanation in plain language why it is the best fit, referring only retrieved product fields if needed  
+        - Alternative (optional): ONE alternative, with its attributes  
+
+        IMPORTANT: Do not mention anything not in the retrieved metadata.
 
         ## Retrieved Products:
         {retrieved_results}
@@ -24,15 +30,13 @@ class RAGGenerator:
         ## User Request:
         {user_query}
 
-        ## Output Format:
-        - Best Product: ...
-        - Why: ...
-        - Alternative (optional): ...
-    """
+    """ 
 
-    def generate_response(self, user_query: str, retrieved_results: list, top_N: int = 20) -> dict:
+    def generate_response(
+        self, user_query: str, retrieved_results: list, top_N: int = 20
+    ) -> dict:
         """
-        Generate a response using the retrieved search results. 
+        Generate a response using the retrieved search results.
         Returns:
             dict: Contains the generated suggestion and the quality evaluation.
         """
@@ -44,13 +48,14 @@ class RAGGenerator:
             model_name = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
 
             # Format the retrieved results for the prompt
-            formatted_results = "\n".join(
-                [f"- PID: {res.pid}, Title: {res.title}" for res in retrieved_results[:top_N]]
-            )
+            formatted_results = "\n".join([ f"""- PID: {res.pid}, Title: {res.title}, Price: {res.selling_price}, 
+                                           Rating: {res.average_rating}, Category: {res.category}, Brand: {res.brand}, 
+                                           Description: {res.description}, Features: {res.product_details}"""
+                                        for res in retrieved_results[:top_N]
+                                    ])
 
             prompt = self.PROMPT_TEMPLATE.format(
-                retrieved_results=formatted_results,
-                user_query=user_query
+                retrieved_results=formatted_results, user_query=user_query
             )
 
             chat_completion = client.chat.completions.create(
