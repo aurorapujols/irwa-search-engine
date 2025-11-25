@@ -3,7 +3,7 @@ from json import JSONEncoder
 
 import httpagentparser  # for getting the user agent as json
 from flask import Flask, render_template, session
-from flask import request
+from flask import request, redirect, url_for
 
 from myapp.analytics.analytics_data import AnalyticsData, ClickedDoc
 from myapp.search.load_corpus import load_corpus
@@ -69,18 +69,58 @@ def index():
     return render_template('index.html', page_title="Welcome")
 
 
-@app.route('/search', methods=['GET', 'POST'])
-def search_page():
-    if request.method == "POST":
-        search_query = request.form['search-query']
-        session['last_search_query'] = search_query
-        search_id = analytics_data.save_query_terms(search_query)
-    else:  # GET method
-        search_id = request.args.get('search_id')
-        search_query = session.get('last_search_query', '')
+# @app.route('/search', methods=['POST'])
+# def search_form_post():
+    
+#     search_query = request.form['search-query']
+
+#     session['last_search_query'] = search_query
+
+#     search_id = analytics_data.save_query_terms(search_query)
+
+#     results = search_engine.search(search_query, search_id, corpus)
+    
+#     # generate RAG response based on user query and retrieved results
+#     rag_response = rag_generator.generate_response(search_query, results)
+#     print("RAG response:", rag_response)
+
+#     found_count = len(results)
+#     session['last_found_count'] = found_count
+
+#     return render_template(
+#         'results.html',
+#         search_query=search_query,
+#         results_list=results,
+#         page_title="Results",
+#         found_counter=found_count,
+#         rag_response=rag_response
+#     )
+
+@app.route('/search', methods=['POST'])
+def search_form_post():
+    search_query = request.form['search-query']
+    session['last_search_query'] = search_query
+
+    # Save query and compute search id
+    search_id = analytics_data.save_query_terms(search_query)
+
+    # Save the id in session so the GET route can use it
+    session["search_id"] = search_id
+
+    return redirect(url_for("search_results"))
+
+@app.route('/search_results', methods=['GET'])
+def search_results():
+    # Retrieve search query and search id from session
+    search_query = session.get('last_search_query', '')
+    search_id = session.get('search_id', None)
 
     results = search_engine.search(search_query, search_id, corpus)
+
+    # generate RAG response based on user query and retrieved results
     rag_response = rag_generator.generate_response(search_query, results)
+    print("RAG response:", rag_response)
+
     found_count = len(results)
     session['last_found_count'] = found_count
 

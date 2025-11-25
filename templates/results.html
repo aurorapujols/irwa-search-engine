@@ -8,16 +8,25 @@
     background-color: #f5f6fa;
   }
 
+  .results-header {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #333;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem;
+    }
+
+    .badge-custom {
+        background-color: #c8102e; 
+        color: #fff; 
+        font-weight: 500;
+    }
+
   .results-container {
     max-width: 900px;
     margin: 2rem auto;
-  }
-
-  .results-header {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    color: #333;
   }
 
   /* AI Summary Box */
@@ -86,9 +95,12 @@
 <div class="results-container">
 
   <!-- Results Header -->
-  <div class="results-header">
-    Found <strong>{{ found_counter }}</strong> result{% if found_counter != 1 %}s{% endif %}
-  </div>
+    <div class="results-header mb-4">
+        <span class="me-2">🔍 Found</span>
+        <span class="fw-bold text-primary">{{ found_counter }}</span>
+        <span>{% if found_counter != 1 %}results{% else %}result{% endif %} for</span>
+        <span class="badge badge-custom">"{{ search_query }}"</span>
+    </div>
 
   <!-- AI Summary -->
   {% if rag_response %}
