@@ -68,37 +68,13 @@ def index():
     print(session)
     return render_template('index.html', page_title="Welcome")
 
-
-# @app.route('/search', methods=['POST'])
-# def search_form_post():
-    
-#     search_query = request.form['search-query']
-
-#     session['last_search_query'] = search_query
-
-#     search_id = analytics_data.save_query_terms(search_query)
-
-#     results = search_engine.search(search_query, search_id, corpus)
-    
-#     # generate RAG response based on user query and retrieved results
-#     rag_response = rag_generator.generate_response(search_query, results)
-#     print("RAG response:", rag_response)
-
-#     found_count = len(results)
-#     session['last_found_count'] = found_count
-
-#     return render_template(
-#         'results.html',
-#         search_query=search_query,
-#         results_list=results,
-#         page_title="Results",
-#         found_counter=found_count,
-#         rag_response=rag_response
-#     )
-
 @app.route('/search', methods=['POST'])
 def search_form_post():
     search_query = request.form['search-query']
+    
+    if not search_query:
+        return redirect(url_for("index"))
+
     session['last_search_query'] = search_query
 
     # Save query and compute search id

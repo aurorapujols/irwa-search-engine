@@ -67,19 +67,21 @@ class SearchEngine:
 
         rankings = []
         query_terms, filtered_prod = filter(search_query, self.products_dict)
-
+        
+        results = []
         ### You should implement your search logic here:
         # results = dummy_search(corpus, search_id)
-        match search_type:
-            case 'tf_idf':
-                rankings = get_tf_idf_ranking(query_terms, filtered_prod, self.tf_idf_index, self.tf_tfidf, self.idf_tfidf, self.weights_tf_idf)
-            case 'bm25':
-                rankings = get_bm25_ranking(query_terms, self.products_dict, filtered_prod, self.idf_bm25, self.Ld, self.Lave)
-            case 'custom':
-                rankings = get_custom_ranking(query_terms, self.metadata, self.products_dict, filtered_prod, self.idf_bm25, self.Ld, self.Lave)
-            case 'word2vec':
-                rankings = get_word2vec_ranking(search_query, self.word2vec_model, self.prod_embeddings, filtered_prod, preprocess=preprocess_string)
+        if(query_terms and filtered_prod):
+            match search_type:
+                case 'tf_idf':
+                    rankings = get_tf_idf_ranking(query_terms, filtered_prod, self.tf_idf_index, self.tf_tfidf, self.idf_tfidf, self.weights_tf_idf)
+                case 'bm25':
+                    rankings = get_bm25_ranking(query_terms, self.products_dict, filtered_prod, self.idf_bm25, self.Ld, self.Lave)
+                case 'custom':
+                    rankings = get_custom_ranking(query_terms, self.metadata, self.products_dict, filtered_prod, self.idf_bm25, self.Ld, self.Lave)
+                case 'word2vec':
+                    rankings = get_word2vec_ranking(search_query, self.word2vec_model, self.prod_embeddings, filtered_prod, preprocess=preprocess_string)
             
-        results = get_search_results(corpus=corpus, results=rankings, search_id=search_id)
+            results = get_search_results(corpus=corpus, results=rankings, search_id=search_id)
         # results = search_in_corpus(search_query)
         return results

@@ -112,16 +112,25 @@
 
   <!-- Results List -->
   <div class="results-list">
-    {% for item in results_list %}
-    <div class="result-card">
-      <div class="doc-title">
-        <a href="{{ item.url }}">{{ item.title }}</a>
+
+    {% if results_list %}
+      
+      {% for item in results_list %}
+      <div class="result-card">
+        <div class="doc-title">
+          <a href="{{ item.url }}">{{ item.title }}</a>
+        </div>
+        <div class="doc-desc">
+          {% if item.doc_date %}{{ item.doc_date }} — {% endif %}{{ item.description }}
+        </div>
       </div>
-      <div class="doc-desc">
-        {% if item.doc_date %}{{ item.doc_date }} — {% endif %}{{ item.description }}
+      {% endfor %}
+
+    {% else %}
+      <div class="no-results">
+        <p>No matches found.</p>
       </div>
-    </div>
-    {% endfor %}
+    {% endif %}
   </div>
 
 </div>
