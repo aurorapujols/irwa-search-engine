@@ -1,18 +1,62 @@
 {% extends "base.html" %}
 {% block page_title %}{{ page_title }}{% endblock %}
 {% block content %}
-    <div class="centered">
-        <p>&nbsp;</p>
-        <p>&nbsp;</p>
-        <p>&nbsp;</p>
-        <form class="d-flex" method="POST" onSubmit='return validate();' action="/search">
-            <input class="form-control me-2" name="search-query" type="search" placeholder="Search" aria-label="Search"
-                   autofocus="autofocus">
-            <button class="btn btn-primary" type="submit" onclick='this.form.submit();'>Search</button>
+
+    <style>
+        .search-container {
+            max-width: 600px;
+            margin: 8rem auto;
+            text-align: center;
+        }
+        .search-title {
+            font-size: 3rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+        .search-box {
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+        .search-box input {
+            border: none;
+            padding-left: 20px;
+            height: 55px;
+            font-size: 1.1rem;
+        }
+        .search-box input:focus {
+            box-shadow: none;
+            outline: none;
+        }
+        .search-box button {
+            border-radius: 0;
+            padding: 0 25px;
+            font-size: 1.1rem;
+        }
+    </style>
+
+    <div class="search-container">
+        <div class="search-title">My Search Engine</div>
+
+        <form method="POST" action="/search" onSubmit="return validate();">
+            <div class="input-group search-box">
+                <input 
+                    class="form-control"
+                    name="search-query"
+                    type="search"
+                    placeholder="Search the web..."
+                    aria-label="Search"
+                    autofocus
+                >
+
+                <button class="btn btn-primary" type="submit">
+                    Search
+                </button>
+            </div>
+
             <input name="upf-irwa-hidden" type="hidden" value="123">
         </form>
-        <p>&nbsp;</p>
-        <p>&nbsp;</p>
-        <p>&nbsp;</p>
     </div>
+
 {% endblock %}

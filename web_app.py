@@ -113,9 +113,11 @@ def doc_details():
     else:
         analytics_data.fact_clicks[clicked_doc_id] = 1
 
+    doc = corpus[clicked_doc_id]
+
     print("fact_clicks count for id={} is {}".format(clicked_doc_id, analytics_data.fact_clicks[clicked_doc_id]))
     print(analytics_data.fact_clicks)
-    return render_template('doc_details.html')
+    return render_template('doc_details.html', doc=doc)
 
 
 @app.route('/stats', methods=['GET'])

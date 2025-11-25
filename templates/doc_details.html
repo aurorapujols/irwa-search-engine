@@ -1,4 +1,168 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
+
+{% block page_title %}
+    Document Detail - IRWA Search Engine
+{% endblock %}
+
+{% block content %}
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Bootstrap JS Bundle (with Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+    /* Modern font */
+    body {
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    }
+
+    /* Product card tweaks */
+    .product-card {
+    border-radius: 10px;
+    background: #fff;
+    transition: transform 0.2s ease-in-out;
+    }
+    .product-card:hover {
+    transform: translateY(-3px);
+    }
+
+    /* Image stays original size */
+    .product-img {
+    max-height: 160px; /* keeps it compact */
+    width: auto;
+    }
+
+    /* Typography */
+    .card-title {
+    font-weight: 600;
+    color: #333;
+    }
+    .description {
+    font-size: 0.9rem;
+    color: #555;
+    }
+    .price {
+    font-size: 1rem;
+    }
+    .rating {
+    font-size: 0.9rem;
+    color: #444;
+    }
+    .carousel-inner img {
+    width: auto !important;
+    height: auto !important;
+    max-width: none !important;
+    }
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        filter: invert(1); /* makes the white arrows black, or vice versa */
+        color: rgba(255,255,255,0.3); /* optional semi-transparent bg */
+        border-radius: 50%;
+        width: 2rem;
+        height: 2rem;
+    }
+    .product-details-table {
+    font-size: 0.8rem;   /* smaller text */
+    }
+    .product-details-table th {
+    font-weight: 500;    /* lighter header weight */
+    }
+    .product-details-table td {
+    color: #555;         /* softer text color */
+    }
+</style>
+
+<div class="container-fluid my-4">
+  <div class="card product-card shadow-sm border-0">
+    <div class="row g-0 align-items-center">
+      
+        <!-- Product Images -->
+        <div class="col-md-3">
+
+            {% if doc.images %}
+            <div id="carousel-{{ doc.pid }}" class="carousel slide" data-bs-ride="carousel">
+
+                <div class="carousel-inner text-center">
+                    {% for img in doc.images %}
+                    <div class="carousel-item {% if loop.first %}active{% endif %}">
+                        <img src="{{ img }}" alt="{{ doc.title }}" style="width:auto; height:auto; max-width:none;">
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if doc.images|length > 1 %}
+                <!-- Only show controls if more than 1 image -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ doc.pid }}" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true" style="filter: invert(1);"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ doc.pid }}" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true" style="filter: invert(1);"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+                {% endif %}
+
+            </div>
+            {% endif %}
+
+        </div>
+
+      <!-- Product Details -->
+      <div class="col-md-9">
+        <div class="card-body">
+          <h4 class="card-title mb-2">{{doc.title}}</h4>
+          <p class="text-muted mb-1">Brand: <strong>{{doc.brand}}</strong></p>
+          <p class="description mb-2">{{doc.description}}</p>
+
+          <!-- Price Section -->
+          <p class="price mb-2">
+            <span class="fw-bold text-success">₹{{doc.selling_price}}</span>
+            <span class="text-muted text-decoration-line-through ms-2">₹{{doc.actual_price}}</span>
+            <span class="badge bg-danger ms-2">{{doc.discount}}% OFF</span>
+          </p>
+
+          <!-- Rating -->
+          <p class="rating mb-2">⭐ <strong>{{doc.average_rating}}</strong> / 5</p>
+
+          <!-- Seller -->
+          <p class="small text-muted mb-2">Sold by: {{doc.seller}}</p>
+
+          <!-- Action Button -->
+          <a href="{{doc.url}}"
+             target="_blank" class="btn btn-primary btn-sm px-3">View Product</a>
+
+            {% if doc.product_details %}
+            <div class="table-responsive mt-3">
+            <table class="table table-sm table-bordered align-middle product-details-table">
+                <thead class="table-light">
+                <tr>
+                    <th colspan="2" class="text-center">Product Details</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for key, value in doc.product_details.items() %}
+                <tr>
+                    <th scope="row" style="width: 30%;">{{ key }}</th>
+                    <td>{{ value }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock %}
+
+
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -15,4 +179,4 @@
 <p>You can also include links to related documents or resources.</p>
 <p>Feel free to customize this page to fit the needs of your application.</p>
 </body>
-</html>
+</html> -->

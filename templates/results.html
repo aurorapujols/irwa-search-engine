@@ -1,27 +1,117 @@
 {% extends "base.html" %}
 {% block page_title %}{{ page_title }}{% endblock %}
 {% block content %}
-    Found <strong>{{ found_counter }}</strong> results...
-    <hr>
-    {% if rag_response %}
-        <div class="mb-4 p-3" style="border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
-            <h5>AI-Generated Summary:</h5>
-            <p>{{ rag_response }}</p>
-        </div>
-    {% endif %}
-    <hr>
+
+<style>
+  body {
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    background-color: #f5f6fa;
+  }
+
+  .results-container {
+    max-width: 900px;
+    margin: 2rem auto;
+  }
+
+  .results-header {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+
+  /* AI Summary Box */
+  .summary-box {
+    border-left: 4px solid #0d6efd;
+    border-radius: 8px;
+    background-color: #ffffff;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transition: transform 0.15s ease-in-out;
+  }
+
+  .summary-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .summary-box h5 {
+    font-weight: 600;
+    color: #0d6efd;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Individual Result Cards */
+  .result-card {
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    background-color: #fff;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  }
+
+  .result-card:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  /* Title & Link */
+  .doc-title a {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #0d6efd;
+    text-decoration: none;
+  }
+
+  .doc-title a:hover {
+    text-decoration: underline;
+  }
+
+  /* Description */
+  .doc-desc {
+    font-size: 0.925rem;
+    color: #555;
+    margin-top: 0.25rem;
+    line-height: 1.45rem;
+  }
+
+  /* Optional: subtle divider between results */
+  .result-card:not(:last-child) {
+    border-bottom: 1px solid #e9ecef;
+  }
+</style>
+
+<div class="results-container">
+
+  <!-- Results Header -->
+  <div class="results-header">
+    Found <strong>{{ found_counter }}</strong> result{% if found_counter != 1 %}s{% endif %}
+  </div>
+
+  <!-- AI Summary -->
+  {% if rag_response %}
+  <div class="summary-box mb-4">
+    <h5>AI‑Generated Summary</h5>
+    <p>{{ rag_response }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Results List -->
+  <div class="results-list">
     {% for item in results_list %}
-        <div class="pb-3">
-            <div class="doc-title">
-                <a href="{{ item.url }}">{{ item.title }}...
-                </a>
-            </div>
-            <div class="doc-desc">
-                {{ item.doc_date }} — {{ item.description }}
-            </div>
-
-        </div>
-
+    <div class="result-card">
+      <div class="doc-title">
+        <a href="{{ item.url }}" target="_blank">{{ item.title }}</a>
+      </div>
+      <div class="doc-desc">
+        {% if item.doc_date %}{{ item.doc_date }} — {% endif %}{{ item.description }}
+      </div>
+    </div>
     {% endfor %}
-{% endblock %}
+  </div>
 
+</div>
+
+{% endblock %}
