@@ -103,7 +103,7 @@
     {% for item in results_list %}
     <div class="result-card">
       <div class="doc-title">
-        <a href="{{ item.url }}" target="_blank">{{ item.title }}</a>
+        <a href="{{ item.url }}">{{ item.title }}</a>
       </div>
       <div class="doc-desc">
         {% if item.doc_date %}{{ item.doc_date }} — {% endif %}{{ item.description }}

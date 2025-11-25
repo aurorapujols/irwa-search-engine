@@ -65,27 +65,28 @@ def index():
     return render_template('index.html', page_title="Welcome")
 
 
-@app.route('/search', methods=['POST'])
-def search_form_post():
-    
-    search_query = request.form['search-query']
-
-    session['last_search_query'] = search_query
-
-    search_id = analytics_data.save_query_terms(search_query)
+@app.route('/search', methods=['GET', 'POST'])
+def search_page():
+    if request.method == "POST":
+        search_query = request.form['search-query']
+        session['last_search_query'] = search_query
+        search_id = analytics_data.save_query_terms(search_query)
+    else:  # GET method
+        search_id = request.args.get('search_id')
+        search_query = session.get('last_search_query', '')
 
     results = search_engine.search(search_query, search_id, corpus)
-
-    # generate RAG response based on user query and retrieved results
     rag_response = rag_generator.generate_response(search_query, results)
-    print("RAG response:", rag_response)
-
     found_count = len(results)
     session['last_found_count'] = found_count
 
-    print(session)
-
-    return render_template('results.html', results_list=results, page_title="Results", found_counter=found_count, rag_response=rag_response)
+    return render_template(
+        'results.html',
+        results_list=results,
+        page_title="Results",
+        found_counter=found_count,
+        rag_response=rag_response
+    )
 
 
 @app.route('/doc_details', methods=['GET'])
@@ -106,6 +107,7 @@ def doc_details():
     # get the query string parameters from request
     clicked_doc_id = request.args["pid"]
     print("click in id={}".format(clicked_doc_id))
+    search_id = request.args.get("search_id")
 
     # store data in statistics table 1
     if clicked_doc_id in analytics_data.fact_clicks.keys():
@@ -117,7 +119,7 @@ def doc_details():
 
     print("fact_clicks count for id={} is {}".format(clicked_doc_id, analytics_data.fact_clicks[clicked_doc_id]))
     print(analytics_data.fact_clicks)
-    return render_template('doc_details.html', doc=doc)
+    return render_template('doc_details.html', doc=doc, search_id=search_id)
 
 
 @app.route('/stats', methods=['GET'])

@@ -120,6 +120,11 @@
             <span class="fw-bold text-success">₹{{doc.selling_price}}</span>
             <span class="text-muted text-decoration-line-through ms-2">₹{{doc.actual_price}}</span>
             <span class="badge bg-danger ms-2">{{doc.discount}}% OFF</span>
+            {% if doc.out_of_stock %}
+                <span class="badge bg-secondary ms-2">Out of Stock</span>
+            {% else %}
+                <span class="badge bg-success ms-2">In Stock</span>
+            {% endif %}
           </p>
 
           <!-- Rating -->
