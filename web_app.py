@@ -29,18 +29,22 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 # open browser dev tool to see the cookies
 app.session_cookie_name = os.getenv("SESSION_COOKIE_NAME")
-# instantiate our search engine
-search_engine = SearchEngine()
+
+# instantiate our search engine with the corpus:
+# load documents corpus into memory.
+print("Loading Search Engine for the first time, this might take a while...")
+full_path = os.path.realpath(__file__)
+path, filename = os.path.split(full_path)
+file_path = path + "/" + os.getenv("DATA_FILE_PATH")
+corpus = load_corpus(file_path)
+search_engine = SearchEngine(corpus=corpus)
+
 # instantiate our in memory persistence
 analytics_data = AnalyticsData()
 # instantiate RAG generator
 rag_generator = RAGGenerator()
 
-# load documents corpus into memory.
-full_path = os.path.realpath(__file__)
-path, filename = os.path.split(full_path)
-file_path = path + "/" + os.getenv("DATA_FILE_PATH")
-corpus = load_corpus(file_path)
+
 # Log first element of corpus to verify it loaded correctly:
 print("\nCorpus is loaded... \n First element:\n", list(corpus.values())[0])
 
@@ -82,6 +86,7 @@ def search_page():
 
     return render_template(
         'results.html',
+        search_query=search_query,
         results_list=results,
         page_title="Results",
         found_counter=found_count,
