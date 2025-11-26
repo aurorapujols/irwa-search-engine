@@ -32,8 +32,8 @@ def get_search_results(corpus:dict, results, search_id, num_results=20):
         doc = corpus[doc_id]
         res.append(Document(pid=doc.pid, title=doc.title, description=doc.description, selling_price=doc.selling_price, discount=doc.discount,
                             average_rating=doc.average_rating, out_of_stock=doc.out_of_stock, category=doc.category, brand=doc.brand, 
-                            sub_category=doc.sub_category, product_details=doc.product_details,
-                            url="doc_details?pid={}&search_id={}&param2=2".format(doc.pid, search_id), ranking=rank+1))
+                            sub_category=doc.sub_category, product_details=doc.product_details, url=doc.url,
+                            page_url="doc_details?pid={}&search_id={}&param2=2".format(doc.pid, search_id), ranking=rank+1))
     return res
 
 
@@ -64,11 +64,17 @@ class SearchEngine:
         self.word2vec_model = train_word2vec_model(self.training_sentences)
         self.prod_embeddings = get_document_embeddings(self.word2vec_model, self.products_dict)
 
-    def search(self, search_query, search_id, corpus, search_type='tf-idf'):
+    def search(self, search_query, search_id, search_type='tf-idf'):
         print("Search query:", search_query)
 
         rankings = []
-        query_terms, filtered_prod = filter(search_query, self.products_dict)
+
+        # WITH FILTERING:
+        # query_terms, filtered_prod = filter(search_query, self.products_dict)
+
+        # WITHOUT FILTERING:
+        query_terms = build_terms(search_query)
+        filtered_prod = [pid for pid in self.products_dict.keys()]    # all of the products
         
         results = []
         ### You should implement your search logic here:
@@ -84,6 +90,6 @@ class SearchEngine:
                 case 'word2vec':
                     rankings = get_word2vec_ranking(search_query, self.word2vec_model, self.prod_embeddings, filtered_prod, preprocess=preprocess_string)
             
-            results = get_search_results(corpus=corpus, results=rankings, search_id=search_id)
+            results = get_search_results(corpus=self.corpus, results=rankings, search_id=search_id)
         # results = search_in_corpus(search_query)
         return results

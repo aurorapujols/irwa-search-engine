@@ -94,7 +94,7 @@ def search_results():
     selected_model = session.get('selected_model', 'TF-IDF')
     search_id = session.get('search_id', None)
 
-    results = search_engine.search(search_query, search_id, corpus, search_type=selected_model.lower())
+    results = search_engine.search(search_query, search_id, search_type=selected_model.lower())
 
     # generate RAG response based on user query and retrieved results
     rag_response = rag_generator.generate_response(search_query, results)

@@ -152,7 +152,7 @@
 
       <!-- Title -->
       <div class="doc-title">
-        <a href="{{ item.url }}" target="_blank">{{ item.title }}</a>
+        <a href="{{ item.page_url }}" target="_blank">{{ item.title }}</a>
 
         {% if item.out_of_stock %}
         <span class="out-of-stock-sticker ms-2">
@@ -185,9 +185,12 @@
         {% if item.average_rating %}
         ⭐ <strong>{{ item.average_rating }}</strong> / 5
         {% else %}
-        ⭐ <strong>No rating yet</strong>
+        ⭐ <strong>No rating yet<tab></tab></strong>
         {% endif %}
       </div>
+
+      <a href="{{item.url}}"
+             target="_blank" class="btn btn-success btn-sm px-1">View Product</a>
 
     </div>
     {% endfor %}
