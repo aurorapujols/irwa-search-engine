@@ -2,189 +2,301 @@
 {% block page_title %}Analytics Dashboard{% endblock %}
 
 {% block header %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.2/chart.min.js"
-            integrity="sha512-tMabqarPtykgDtdtSqCL3uLVM0gS1ZkUAVhRFu1vSEFgvB73niFQWJuvviDyBGBH22Lcau4rHB5p2K2T0Xvr6Q=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.2/chart.min.js"
+    integrity="sha512-tMabqarPtykgDtdtSqCL3uLVM0gS1ZkUAVhRFu1vSEFgvB73niFQWJuvviDyBGBH22Lcau4rHB5p2K2T0Xvr6Q=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 {% endblock %}
 
 {% block content %}
 
-    <h2 class="mt-4 mb-4">📊 Web Analytics Dashboard</h2>
-    <hr>
+<h2 class="mt-4 mb-4">📊 Web Analytics Dashboard</h2>
+<hr>
 
-    <div class="row">
-        <div class="col-md-12">
-            <h3>Key Indicators (KPIs)</h3>
-            <div class="row">
-                
-                <div class="col-md-4 mb-3">
-                    <div class="card text-white bg-primary">
-                        <div class="card-body">
-                            <h5 class="card-title">Total Searches</h5>
-                            <p class="card-text h1">{{ kpis.total_searches }}</p>
-                            <p class="card-text">Total times the search form was submitted.</p>
-                        </div>
-                    </div>
-                </div>
+{% if no_data %}
+<div class="alert alert-warning mt-4">
+    No analytics data available yet. Perform a search or click a result to generate analytics data.
+</div>
+{% endif %}
 
-                <div class="col-md-4 mb-3">
-                    <div class="card text-white bg-success">
-                        <div class="card-body">
-                            <h5 class="card-title">Total Document Clicks</h5>
-                            <p class="card-text h1">{{ kpis.total_clicks }}</p>
-                            <p class="card-text">Total result documents opened by users.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <div class="card text-white bg-info">
-                        <div class="card-body">
-                            <h5 class="card-title">Avg. Dwell Time</h5>
-                            <p class="card-text h1">{{ kpis.avg_dwell_time }}</p>
-                            <p class="card-text">Average time spent viewing a clicked document (Dwell Time).</p>
-                        </div>
+{% if not no_data %}
+<div class="row">
+    <div class="col-md-12">
+        <h3>Key Indicators (KPIs)</h3>
+        <div class="row">
+            {% if has_searches %}
+            <div class="col-md-4 mb-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Searches</h5>
+                        <p class="card-text h1">{{ kpis.total_searches }}</p>
+                        <p class="card-text">Total times the search form was submitted.</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <hr>
-
-    <div class="row">
-        <div class="col-md-12">
-            <h3>Usage Graphs and Visual Reports</h3>
-        </div>
-
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    Document Views by Popularity (Ranking of Visited Documents)
-                </div>
-                <div class="card-body">
-                    <p class="card-text">
-                        This chart visualizes the **Top 10 most clicked documents**. This metric indicates which search results are most engaging and relevant to users based on their post-search interaction.
-                    </p>
-                    <iframe src="{{ url_for('plot_number_of_views') }}" width="100%" height="400" style="border: none;"></iframe>
+            {% endif %}
+            {% if has_searches %}
+            <div class="col-md-4 mb-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Document Clicks</h5>
+                        <p class="card-text h1">{{ kpis.total_clicks }}</p>
+                        <p class="card-text">Total result documents opened by users.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    Visitor's Preferred Browsers
-                </div>
-                <div class="card-body">
-                    <p class="card-text">
-                        This chart shows the distribution of traffic across **different web browsers**. It helps ensure the website is fully compatible with the most popular platforms used by visitors.
-                    </p>
-                    <iframe src="{{ browser_chart_route }}" width="100%" height="400" style="border: none;"></iframe>
+            {% endif %}
+            {% if has_clicks %}
+            <div class="col-md-4 mb-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5 class="card-title">Avg. Dwell Time</h5>
+                        <p class="card-text h1">{{ kpis.avg_dwell_time }}</p>
+                        <p class="card-text">Average time spent viewing a clicked document (Dwell Time).</p>
+                    </div>
                 </div>
             </div>
+            {% endif %}
         </div>
-        
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    Search Query Term Distribution
-                </div>
-                <div class="card-body">
-                    <p class="card-text">
-                        This chart shows the distribution of search queries based on **the number of terms** they contain. It helps understand user search behavior.
-                    </p>
-                    <iframe src="{{ url_for('plot_term_count_distribution_route') }}" width="100%" height="400" style="border: none;"></iframe>
-                </div>
+    </div>
+</div>
+<hr>
+
+<div class="row">
+    <div class="col-md-12">
+        <h3>Usage Graphs and Visual Reports</h3>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                Document Views by Popularity (Ranking of Visited Documents)
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    This chart visualizes the **Top 10 most clicked documents**. This metric indicates which search
+                    results are most engaging and relevant to users based on their post-search interaction.
+                </p>
+                {% if has_clicks %}
+                <iframe src="{{ url_for('plot_number_of_views') }}" width="100%" height="400"
+                    style="border: none;"></iframe>
+                {% else %}
+                <p style="color:red;">No document click data yet.</p>
+                {% endif %}
             </div>
         </div>
     </div>
-    <hr>
 
-    <div class="row">
-        
-        <div class="col-md-4">
-            <h3>Preferred Queries Ranking</h3>
-            <p>The top 10 most frequent search strings entered by users.</p>
-            <table class="table table-striped table-sm">
-                <thead class="thead-dark">
-                    <tr><th>Rank</th><th>Query</th><th>Count</th></tr>
-                </thead>
-                <tbody>
-                    {% for query, count in top_queries %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ query | truncate(30) }}</td>
-                        <td><strong>{{ count }}</strong></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="col-md-4">
-            <h3>Preferred Terms</h3>
-            <p>The top 10 most common single words (terms) used in all searches.</p>
-            <table class="table table-striped table-sm">
-                <thead class="thead-dark">
-                    <tr><th>Rank</th><th>Term</th><th>Count</th></tr>
-                </thead>
-                <tbody>
-                    {% for term, count in top_terms %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ term }}</td>
-                        <td><strong>{{ count }}</strong></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="col-md-4">
-            <h3>Visitor's City (Top IPs)</h3>
-            <p>Tracking visitor location (using IP address as a proxy for city/country - Bonus Point). To get city names, a GeoIP library is required.</p>
-            <table class="table table-striped table-sm">
-                <thead class="thead-dark">
-                    <tr><th>Rank</th><th>IP Address</th><th>Session Count</th></tr>
-                </thead>
-                <tbody>
-                    {% for ip, count in top_ips %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ ip }}</td>
-                        <td><strong>{{ count }}</strong></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <h3>Detailed Click Ranking Report</h3>
-            <p>A detailed view of the **Ranking of visited documents** by click count.</p>
-            <table class="table table-striped">
-                <thead class="thead-dark">
-                    <tr>
-                        <th>Rank</th>
-                        <th>Product ID (PID)</th>
-                        <th>Description (Title)</th>
-                        <th>Total Clicks</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for doc in visited_docs %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ doc.doc_id }}</td>
-                        <td>{{ doc.description | truncate(80) }}</td>
-                        <td><strong>{{ doc.counter }}</strong></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                Visitor's Preferred Browsers
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    This chart shows the distribution of traffic across **different web browsers**. It helps ensure the
+                    website is fully compatible with the most popular platforms used by visitors.
+                </p>
+                {% if has_requests %}
+                <iframe src="{{ browser_chart_route }}" width="100%" height="400" style="border: none;"></iframe>
+                {% else %}
+                <p style="color:red;">No visitor browser data available yet.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                Search Query Term Distribution
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    This chart shows the distribution of search queries based on **the number of terms** they contain.
+                    It helps understand user search behavior.
+                </p>
+                {% if has_queries %}
+                <iframe src="{{ url_for('plot_term_count_distribution_route') }}" width="100%" height="400"
+                    style="border: none;"></iframe>
+                {% else %}
+                <p style="color:red;">No query term data yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<hr>
+<div class="col-md-6 mb-4">
+    <div class="card">
+        <div class="card-header">
+            Queries per Mission
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+                This chart shows the number of queries grouped by **mission ID**. It helps analyze how many related
+                searches users perform within the same mission context.
+            </p>
+            {% if queries_per_mission_chart %}
+                {{ queries_per_mission_chart | safe }}
+            {% else %}
+                <p style="color:red;">No mission data available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 mb-4">
+    <div class="card">
+        <div class="card-header">
+            Missions per Session
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+                This chart shows how many missions are created per **user session**. It helps understand user engagement
+                and whether visitors perform multiple related searches in one visit.
+            </p>
+            {% if missions_per_session_chart %}
+                {{ missions_per_session_chart | safe }}
+            {% else %}
+                <p style="color:red;">No mission data available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="col-md-12 mb-4">
+    <div class="card">
+        <div class="card-header">
+            Mission Timeline
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+                This chart shows the **timeline of queries within a mission**, ordered by timestamp. It helps visualize
+                the progression of user intent during a mission.
+            </p>
+            {% if mission_timeline_chart %}
+                {{ mission_timeline_chart | safe }}
+            {% else %}
+                <p style="color:red;">No mission timeline data available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+
+    <div class="col-md-4">
+        <h3>Preferred Queries Ranking</h3>
+        <p>The top 10 most frequent search strings entered by users.</p>
+        {% if has_queries %}
+        <table class="table table-striped table-sm">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Rank</th>
+                    <th>Query</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for query, count in top_queries %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ query | truncate(30) }}</td>
+                    <td><strong>{{ count }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color:red;">No search queries submitted yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <h3>Preferred Terms</h3>
+        <p>The top 10 most common single words (terms) used in all searches.</p>
+        {% if has_queries %}
+        <table class="table table-striped table-sm">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Rank</th>
+                    <th>Term</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for term, count in top_terms %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ term }}</td>
+                    <td><strong>{{ count }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color:red;">No search term data yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <h3>Visitor's City (Top IPs)</h3>
+        <p>Tracking visitor location (using IP address as a proxy for city/country - Bonus Point). To get city names, a
+            GeoIP library is required.</p>
+        {% if has_requests %}
+        <table class="table table-striped table-sm">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Rank</th>
+                    <th>IP Address</th>
+                    <th>Session Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ip, count in top_ips %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ ip }}</td>
+                    <td><strong>{{ count }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color:red;">No visitor IP data yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h3>Detailed Click Ranking Report</h3>
+        <p>A detailed view of the **Ranking of visited documents** by click count.</p>
+        {% if has_clicks %}
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Rank</th>
+                    <th>Product ID (PID)</th>
+                    <th>Description (Title)</th>
+                    <th>Total Clicks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in visited_docs %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ doc.doc_id }}</td>
+                    <td>{{ doc.description | truncate(80) }}</td>
+                    <td><strong>{{ doc.counter }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color:red;">No document clicks recorded yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 {% endblock %}

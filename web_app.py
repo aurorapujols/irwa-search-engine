@@ -218,63 +218,108 @@ def stats():
 @app.route('/dashboard', methods=['GET'])
 def dashboard():
 
-    # Key Indicators (KPIs)
+    # Check if ANY data exists
+    has_any_data = (
+        bool(analytics_data.dim_sessions) or
+        bool(analytics_data.dim_queries) or
+        bool(analytics_data.fact_requests) or
+        bool(analytics_data.fact_clicks)
+    )
+
+    if not has_any_data:
+        return render_template("dashboard.html", no_data=True)
+
+    # --- KPIs ---
     total_clicks = len(analytics_data.fact_clicks)
     total_searches = len([req for req in analytics_data.fact_requests.values() if req.get('query_id')])
 
-    # Calculate average dwell time
     dwell_times = [c['dwell_time'] for c in analytics_data.fact_clicks.values() if 'dwell_time' in c]
     avg_dwell_time = sum(dwell_times) / len(dwell_times) if dwell_times else 0
-
-    # Reports
-    top_docs_data = analytics_data.get_top_n_clicked_documents()
-    top_visited_docs = []
-    for doc_id, count in top_docs_data:
-        d = corpus.get(doc_id)
-        if d:
-            doc = ClickedDoc(doc_id, d.title, count)
-            top_visited_docs.append(doc)
-
-    # Graph data
-    term_count_df = analytics_data.get_query_term_count_distribution()
-    term_count_chart_html = analytics_data.plot_term_count_distribution(term_count_df)
-
-    doc_views_chart_html = analytics_data.plot_number_of_views(top_visited_docs)
-
-    top_queries_data = analytics_data.get_top_queries(n=10)
-    top_terms_data = analytics_data.get_top_terms(n=10)
-    browser_df = analytics_data.get_preferred_browsers(n=5)
-
-    top_ips = analytics_data.get_top_ips()
-
-    # ip_counts = dict()
-    # for session_data in analytics_data.dim_sessions.values():
-    #     ip = session_data.get('ip_address', 'Unknown')
-    #     ip_counts[ip] = ip_counts.get(ip, 0) + 1
-
+    
     kpis = {
         'total_clicks': total_clicks,
         'total_searches': total_searches,
         'avg_dwell_time': f"{avg_dwell_time:.2f} seconds"
     }
 
+    # --- Reports ---
+    top_docs_data = analytics_data.get_top_n_clicked_documents()
+    top_visited_docs = []
+
+    for doc_id, count in top_docs_data:
+        row = corpus.get(doc_id)
+        if row:
+            top_visited_docs.append(ClickedDoc(doc_id, row.title, count))
+
+    # --- Per-widget data availability checks ---
+    has_queries = bool(analytics_data.dim_queries)
+    has_clicks = bool(analytics_data.fact_clicks)
+    has_requests = bool(analytics_data.fact_requests)
+    has_missions = bool(analytics_data.dim_missions)
+    has_searches = bool([req for req in analytics_data.fact_requests.values() if req.get('query_id')])
+
+    # Only generate charts if data exists
+    term_count_chart_html = (
+        analytics_data.plot_term_count_distribution(
+            analytics_data.get_query_term_count_distribution()
+        )
+        if has_queries else None
+    )
+
+    doc_views_chart_html = (
+        analytics_data.plot_number_of_views(top_visited_docs)
+        if has_clicks else None
+    )
+
+    queries_per_mission_chart_html = (
+        analytics_data.plot_queries_per_mission(analytics_data.dim_missions)
+        if analytics_data.dim_missions else None
+    )
+
+    missions_per_session_chart_html = (
+        analytics_data.plot_missions_per_session(analytics_data.dim_missions)
+        if analytics_data.dim_missions else None
+    )
+
+    # Example: timeline for the first mission (optional)
+    mission_timeline_chart_html = None
+    if analytics_data.dim_missions:
+        first_mission_id = next(iter(analytics_data.dim_missions.keys()))
+        mission_timeline_chart_html = analytics_data.plot_mission_timeline(
+            first_mission_id, analytics_data.dim_missions, analytics_data.dim_queries
+        )
+
     return render_template(
-        'dashboard.html', 
+        'dashboard.html',
+        no_data=False,
         kpis=kpis,
         visited_docs=top_visited_docs,
         term_count_chart=term_count_chart_html,
         doc_views_chart=doc_views_chart_html,
-        top_queries_data=top_queries_data,
-        top_terms=top_terms_data,
-        top_ips=top_ips,
-        browser_chart_route=url_for('plot_preferred_browsers_route')
-        )
-
+        has_queries=has_queries,
+        has_clicks=has_clicks,
+        has_requests=has_requests,
+        has_searches=has_searches, 
+        has_missions=has_missions,
+        top_queries_data=analytics_data.get_top_queries(10) if has_queries else None,
+        top_terms=analytics_data.get_top_terms(10) if has_queries else None,
+        top_ips=analytics_data.get_top_ips() if has_requests else None,
+        browser_chart_route=url_for('plot_preferred_browsers_route') if has_requests else None,
+        queries_per_mission_chart=queries_per_mission_chart_html,
+        missions_per_session_chart=missions_per_session_chart_html,
+        mission_timeline_chart=mission_timeline_chart_html,
+    )
 
 # New route added for generating an examples of basic Altair plot (used for dashboard)
 @app.route('/plot_number_of_views', methods=['GET'])
 def plot_number_of_views():
-    top_visited_docs = analytics_data.get_top_n_clicked_documents()
+    top_docs_data = analytics_data.get_top_n_clicked_documents()
+    top_visited_docs = []
+
+    for doc_id, count in top_docs_data:
+        row = corpus.get(doc_id)
+        if row:
+            top_visited_docs.append(ClickedDoc(doc_id, row.title, count))
     return analytics_data.plot_number_of_views(top_visited_docs)
 
 @app.route('/plot_term_count_distribution', methods=['GET'])
