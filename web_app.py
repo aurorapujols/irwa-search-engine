@@ -104,7 +104,7 @@ def search_form_post():
     # We cannot get the results so we will do the following save in /search_results
     # search_id = analytics_data.save_query_terms(search_query)
     # Save the id in session so the GET route can use it
-    #session["search_id"] = search_id
+    # session["search_id"] = search_id
 
     # This POST request is mostly for HTTP session tracking
     log_request_data(analytics_data, status_code=302)
@@ -125,7 +125,8 @@ def search_results():
     search_id = analytics_data.save_query_terms(search_query, results_pids)
     session['search_id'] = search_id
 
-    request_id, _ = log_request_data(analytics_data, search_id, found_count, selected_model)
+    print("Search id: ", search_id)
+    request_id, _ = log_request_data(analytics_data, query_id=search_id, found_count=len(results), selected_model=selected_model)
     
     session['last_request_id'] = request_id # storing for future clicks
 
