@@ -137,3 +137,6 @@ dmypy.json
 irwa_env/
 irwa_venv/
 data/
+
+
+.vscode/
